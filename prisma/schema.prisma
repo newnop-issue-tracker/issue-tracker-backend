@@ -1,0 +1,79 @@
+// Prisma schema for Issue Tracker
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  issues       Issue[]
+  refreshTokens RefreshToken[]
+
+  @@index([email])
+}
+
+model Issue {
+  id          String   @id @default(uuid())
+  title       String   @db.VarChar(200)
+  description String   @db.Text
+  status      Status   @default(OPEN)
+  priority    Priority @default(MEDIUM)
+  severity    Severity @default(MINOR)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([priority])
+  @@index([severity])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([tokenHash])
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Severity {
+  TRIVIAL
+  MINOR
+  MAJOR
+  CRITICAL
+}
