@@ -3,7 +3,6 @@ import { authController } from './auth.controller';
 import { registerSchema, loginSchema } from './auth.schema';
 import { validate } from '../../middleware/validate';
 import { authMiddleware } from '../../middleware/auth';
-import { authLimiter } from '../../middleware/rateLimiter';
 import { asyncHandler } from '../../utils/asyncHandler';
 
 const router = Router();
@@ -13,7 +12,6 @@ const router = Router();
  */
 router.post(
   '/register',
-  authLimiter,
   validate(registerSchema),
   asyncHandler(authController.register),
 );
@@ -23,7 +21,6 @@ router.post(
  */
 router.post(
   '/login',
-  authLimiter,
   validate(loginSchema),
   asyncHandler(authController.login),
 );
