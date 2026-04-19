@@ -18,9 +18,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  issues          Issue[]  @relation("AuthoredIssues")
-  resolvedIssues  Issue[]  @relation("ResolvedIssues")
-  updatedIssues   Issue[]  @relation("UpdatedIssues")
+  issues          Issue[]   @relation("AuthoredIssues")
+  resolvedIssues  Issue[]   @relation("ResolvedIssues")
+  updatedIssues   Issue[]   @relation("UpdatedIssues")
+  comments        Comment[] @relation("CommentAuthor")
   refreshTokens   RefreshToken[]
 
   @@index([email])
@@ -40,16 +41,39 @@ model Issue {
   author        User     @relation("AuthoredIssues", fields: [authorId], references: [id], onDelete: Cascade)
 
   resolvedById  String?
-  resolvedBy    User?    @relation("ResolvedIssues", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedBy    User?     @relation("ResolvedIssues", fields: [resolvedById], references: [id], onDelete: SetNull)
 
   updatedById   String?
-  updatedBy     User?    @relation("UpdatedIssues", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedBy     User?     @relation("UpdatedIssues", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  comments      Comment[]
 
   @@index([status])
   @@index([priority])
   @@index([severity])
   @@index([authorId])
   @@index([createdAt])
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId  String
+  author    User     @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  issueId   String
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@index([issueId])
+  @@index([authorId])
+  @@index([parentId])
 }
 
 model RefreshToken {

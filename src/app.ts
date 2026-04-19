@@ -10,6 +10,7 @@ import { globalLimiter } from './middleware/rateLimiter';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import authRoutes from './modules/auth/auth.routes';
 import issuesRoutes from './modules/issues/issues.routes';
+import commentsRoutes from './modules/comments/comments.routes';
 
 
 /**
@@ -72,6 +73,7 @@ export function createApp(): Express {
   // 7. API routes
   app.use('/api/auth', authRoutes);
   app.use('/api/issues', issuesRoutes);
+  app.use('/api/issues/:id/comments', commentsRoutes);
 
   // 8. 404 for unknown routes
   app.use(notFoundHandler);
