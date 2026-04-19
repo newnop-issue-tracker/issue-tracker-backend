@@ -39,15 +39,24 @@ export const issuesService = {
   },
 
   /**
-   * Update — only the author may update their own issue.
-   * Returns the fresh record.
+   * Update — any authenticated user may change status only.
+   * Editing title, description, priority, or severity requires authorship.
    */
   async update(userId: string, id: string, input: UpdateIssueInput) {
     const existing = await issuesRepository.findById(id);
     if (!existing) throw NotFound('Issue');
-    if (existing.authorId !== userId) {
-      throw Forbidden('You can only update your own issues');
+
+    const isAuthor = existing.authorId === userId;
+    const hasAuthorOnlyFields =
+      input.title !== undefined ||
+      input.description !== undefined ||
+      input.priority !== undefined ||
+      input.severity !== undefined;
+
+    if (!isAuthor && hasAuthorOnlyFields) {
+      throw Forbidden('Only the author can edit issue details');
     }
+
     return issuesRepository.update(id, input);
   },
 
