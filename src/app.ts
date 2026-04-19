@@ -11,8 +11,6 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import authRoutes from './modules/auth/auth.routes';
 import issuesRoutes from './modules/issues/issues.routes';
 
-// Make sure the Express.Request.user augmentation is picked up
-import './types/express';
 
 /**
  * Build and configure the Express app.
