@@ -15,7 +15,7 @@ import type {
  *   - Single place to tune queries (includes, selects, indexes)
  */
 
-const authorSelect = {
+const userSelect = {
   id: true,
   name: true,
   email: true,
@@ -31,7 +31,9 @@ const issueWithAuthor = {
   createdAt: true,
   updatedAt: true,
   authorId: true,
-  author: { select: authorSelect },
+  author:      { select: userSelect },
+  resolvedBy:  { select: userSelect },
+  updatedBy:   { select: userSelect },
 } satisfies Prisma.IssueSelect;
 
 export const issuesRepository = {
@@ -93,10 +95,18 @@ export const issuesRepository = {
     });
   },
 
-  async update(id: string, data: UpdateIssueInput) {
+  async update(
+    id: string,
+    data: UpdateIssueInput,
+    meta: { updatedById: string; resolvedById?: string | null },
+  ) {
     return prisma.issue.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        updatedById: meta.updatedById,
+        ...(meta.resolvedById !== undefined ? { resolvedById: meta.resolvedById } : {}),
+      },
       select: issueWithAuthor,
     });
   },

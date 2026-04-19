@@ -41,6 +41,7 @@ export const issuesService = {
   /**
    * Update — any authenticated user may change status only.
    * Editing title, description, priority, or severity requires authorship.
+   * Tracks who last updated and who resolved.
    */
   async update(userId: string, id: string, input: UpdateIssueInput) {
     const existing = await issuesRepository.findById(id);
@@ -57,7 +58,18 @@ export const issuesService = {
       throw Forbidden('Only the author can edit issue details');
     }
 
-    return issuesRepository.update(id, input);
+    // Determine resolvedById:
+    // - set to userId when transitioning to RESOLVED
+    // - clear when moving away from RESOLVED
+    // - leave unchanged if status not being updated
+    let resolvedById: string | null | undefined = undefined;
+    if (input.status === 'RESOLVED') {
+      resolvedById = userId;
+    } else if (input.status !== undefined && existing.status === 'RESOLVED') {
+      resolvedById = null;
+    }
+
+    return issuesRepository.update(id, input, { updatedById: userId, resolvedById });
   },
 
   /**
