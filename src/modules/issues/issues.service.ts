@@ -15,8 +15,8 @@ import type {
  *   - Reusable if we add GraphQL or an internal caller later
  */
 export const issuesService = {
-  async list(query: ListIssuesQuery) {
-    const { items, total } = await issuesRepository.findMany(query);
+  async list(query: ListIssuesQuery, currentUserId?: string) {
+    const { items, total } = await issuesRepository.findMany(query, currentUserId);
     return {
       data: items,
       pagination: {

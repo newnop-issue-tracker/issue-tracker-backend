@@ -31,7 +31,9 @@ const issueWithAuthor = {
   createdAt: true,
   updatedAt: true,
   authorId: true,
+  assigneeId: true,
   author:      { select: userSelect },
+  assignee:    { select: userSelect },
   resolvedBy:  { select: userSelect },
   updatedBy:   { select: userSelect },
 } satisfies Prisma.IssueSelect;
@@ -42,17 +44,17 @@ export const issuesRepository = {
    * Exposed so the service can reuse it for counting.
    */
   buildWhere(
-    query: Pick<ListIssuesQuery, 'search' | 'status' | 'priority' | 'severity'>,
+    query: Pick<ListIssuesQuery, 'search' | 'status' | 'priority' | 'severity' | 'assignedToMe'>,
+    currentUserId?: string,
   ): Prisma.IssueWhereInput {
     const where: Prisma.IssueWhereInput = {};
 
     if (query.status) where.status = query.status;
     if (query.priority) where.priority = query.priority;
     if (query.severity) where.severity = query.severity;
+    if (query.assignedToMe && currentUserId) where.assigneeId = currentUserId;
 
     if (query.search) {
-      // Case-insensitive LIKE on title or description.
-      // For larger datasets, consider MySQL FULLTEXT index + MATCH AGAINST.
       where.OR = [
         { title: { contains: query.search } },
         { description: { contains: query.search } },
@@ -62,8 +64,8 @@ export const issuesRepository = {
     return where;
   },
 
-  async findMany(query: ListIssuesQuery) {
-    const where = this.buildWhere(query);
+  async findMany(query: ListIssuesQuery, currentUserId?: string) {
+    const where = this.buildWhere(query, currentUserId);
     const skip = (query.page - 1) * query.limit;
 
     // Run count + findMany in parallel for better perf.

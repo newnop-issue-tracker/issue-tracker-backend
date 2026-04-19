@@ -18,6 +18,7 @@ export const createIssueSchema = z.object({
   status: StatusEnum.optional(),
   priority: PriorityEnum.optional(),
   severity: SeverityEnum.optional(),
+  assigneeId: z.string().uuid().nullable().optional(),
 });
 
 /**
@@ -30,6 +31,7 @@ export const updateIssueSchema = z
     status: StatusEnum.optional(),
     priority: PriorityEnum.optional(),
     severity: SeverityEnum.optional(),
+    assigneeId: z.string().uuid().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'At least one field must be provided',
@@ -48,6 +50,7 @@ export const listIssuesQuerySchema = z.object({
   severity: SeverityEnum.optional(),
   sortBy: z.enum(['createdAt', 'updatedAt', 'priority', 'status']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  assignedToMe: z.coerce.boolean().optional(),
 });
 
 /**

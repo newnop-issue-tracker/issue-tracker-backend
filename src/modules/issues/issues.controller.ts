@@ -9,8 +9,10 @@ import type { ListIssuesQuery } from './issues.schema';
  */
 export const issuesController = {
   async list(req: Request, res: Response): Promise<void> {
-    // req.query is already validated/coerced by validate(listIssuesQuerySchema, 'query')
-    const result = await issuesService.list(req.query as unknown as ListIssuesQuery);
+    const result = await issuesService.list(
+      req.query as unknown as ListIssuesQuery,
+      req.user?.id,
+    );
     res.status(200).json(result);
   },
 

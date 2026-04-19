@@ -11,6 +11,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import authRoutes from './modules/auth/auth.routes';
 import issuesRoutes from './modules/issues/issues.routes';
 import commentsRoutes from './modules/comments/comments.routes';
+import usersRoutes from './modules/users/users.routes';
 
 
 /**
@@ -74,6 +75,7 @@ export function createApp(): Express {
   app.use('/api/auth', authRoutes);
   app.use('/api/issues', issuesRoutes);
   app.use('/api/issues/:id/comments', commentsRoutes);
+  app.use('/api/users', usersRoutes);
 
   // 8. 404 for unknown routes
   app.use(notFoundHandler);
