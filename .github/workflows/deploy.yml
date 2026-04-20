@@ -32,7 +32,8 @@ jobs:
             CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
             EOF
 
-            docker compose up -d --build
+            docker compose build --pull=false
+            docker compose up -d
 
             echo "Deploy complete. Running containers:"
             docker compose ps
