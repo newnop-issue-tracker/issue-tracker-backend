@@ -29,6 +29,9 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
+# Fix permissions so node user can write to prisma engines
+RUN chown -R node:node /app
+
 # Run as non-root for security
 USER node
 
