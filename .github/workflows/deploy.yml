@@ -32,7 +32,9 @@ jobs:
             CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
             EOF
 
-            docker compose build --pull=false
+            if [[ "$(docker images -q app-backend 2>/dev/null)" == "" ]]; then
+              docker compose build --no-cache
+            fi
             docker compose up -d
 
             echo "Deploy complete. Running containers:"
