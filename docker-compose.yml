@@ -17,9 +17,7 @@ services:
       retries: 10
 
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${DOCKER_USERNAME}/issue-tracker-backend:latest
     container_name: issue-tracker-backend
     restart: unless-stopped
     ports:
