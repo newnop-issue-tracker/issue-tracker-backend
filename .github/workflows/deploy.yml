@@ -22,7 +22,7 @@ jobs:
           script: |
             cd /home/ubuntu/app
 
-            git pull origin main
+            GIT_SSH_COMMAND="ssh -i /home/ubuntu/.ssh/github -o StrictHostKeyChecking=no" git pull origin main
 
             cat > .env <<EOF
             DATABASE_URL=${{ secrets.DATABASE_URL }}
