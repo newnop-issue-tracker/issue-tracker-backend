@@ -35,7 +35,7 @@ export const issuesController = {
 
   async delete(req: Request, res: Response): Promise<void> {
     if (!req.user) throw Unauthorized();
-    await issuesService.delete(req.user.id, req.params.id!);
+    await issuesService.delete(req.user.id, req.params.id as string);
     res.status(204).send();
   },
 
