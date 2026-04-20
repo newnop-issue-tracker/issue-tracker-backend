@@ -17,7 +17,7 @@ export const issuesController = {
   },
 
   async getById(req: Request, res: Response): Promise<void> {
-    const issue = await issuesService.getById(req.params.id!);
+    const issue = await issuesService.getById(req.params.id as string);
     res.status(200).json({ data: issue });
   },
 
@@ -29,7 +29,7 @@ export const issuesController = {
 
   async update(req: Request, res: Response): Promise<void> {
     if (!req.user) throw Unauthorized();
-    const issue = await issuesService.update(req.user.id, req.params.id!, req.body);
+    const issue = await issuesService.update(req.user.id, req.params.id as string, req.body);
     res.status(200).json({ data: issue });
   },
 
