@@ -225,28 +225,44 @@ curl -X POST http://localhost:8080/api/auth/refresh -b cookies.txt -c cookies.tx
 - Refresh token rotation + reuse detection ≠ indefinite access if stolen
 - Short access TTL limits damage from a leaked access token
 
-## Deployment (AWS)
+## Deployment (AWS EC2 + Docker Hub + GitHub Actions)
 
-### Recommended stack
-- **Database:** RDS MySQL 8 `db.t3.micro` (free tier)
-- **Backend:** AWS App Runner (reads the Dockerfile, auto-deploys from GitHub)
-- **Frontend:** AWS Amplify or S3 + CloudFront
+### Stack
+- **Backend:** AWS EC2 t3.small running Docker containers
+- **Database:** MySQL 8 in Docker on the same EC2 instance
+- **CI/CD:** GitHub Actions builds image → pushes to Docker Hub → EC2 pulls and restarts
+- **HTTPS:** nginx reverse proxy + Let's Encrypt SSL certificate
+- **Frontend:** Vercel (separate repo)
 
-### Steps
+### How it works
 
-1. **Create RDS instance** — MySQL 8, public access on, security group allows port 3306 from your IP + App Runner
-2. **Note the connection string** — `mysql://admin:<pwd>@<endpoint>:3306/issue_tracker`
-3. **Push to GitHub**
-4. **App Runner → Create service** → source: your repo, runtime: Dockerfile, auto-deploy on push
-5. **Environment variables** in App Runner:
-   - `DATABASE_URL`
-   - `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` (both 32+ chars)
-   - `CORS_ORIGIN` (your frontend URL)
-   - `NODE_ENV=production`
-6. **Health check path:** `/health`
-7. **Port:** `8080`
+Every push to `main`:
+1. GitHub Actions builds the Docker image on GitHub's fast runners
+2. Pushes the image to Docker Hub
+3. SSHs into EC2 and runs `docker compose pull && docker compose up -d`
 
-The Dockerfile runs `prisma migrate deploy` on startup, so schema is always in sync.
+### Required GitHub Secrets
+
+| Secret              | Description                        |
+| ------------------- | ---------------------------------- |
+| `EC2_HOST`          | EC2 public IP address              |
+| `EC2_USER`          | SSH user (`ubuntu`)                |
+| `EC2_SSH_KEY`       | Private SSH key for EC2 access     |
+| `DOCKER_USERNAME`   | Docker Hub username                |
+| `DOCKER_TOKEN`      | Docker Hub access token            |
+| `DATABASE_URL`      | `mysql://root:password@mysql:3306/issue_tracker` |
+| `JWT_ACCESS_SECRET` | 32+ character random string        |
+| `JWT_REFRESH_SECRET`| 32+ character random string        |
+| `CORS_ORIGIN`       | Frontend URL (e.g. Vercel domain)  |
+
+### Seed demo data
+
+After first deploy, run:
+```bash
+docker exec -it issue-tracker-backend sh -c "npx prisma db seed"
+```
+
+This creates `demo@example.com` / `Demo1234!` and 50 sample issues.
 
 ## Design Decisions
 
@@ -274,16 +290,6 @@ The Dockerfile runs `prisma migrate deploy` on startup, so schema is always in s
 - [x] Ownership checks on update/delete (403 for other users' issues)
 - [x] Stack traces never leaked to clients in production
 - [x] Non-root user in Docker image
-
-## What to Build Next
-
-- WebSocket channel for real-time issue updates across tabs
-- Audit log per issue (who changed what, when)
-- Role-based access (admin / reporter / viewer)
-- File attachments via S3 presigned URLs
-- Password reset flow with time-limited email tokens
-- Swagger UI at `/api-docs`
-- Vitest unit tests for service layer
 
 ## License
 
