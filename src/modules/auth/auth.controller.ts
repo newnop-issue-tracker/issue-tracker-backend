@@ -17,7 +17,7 @@ function getRefreshCookieOptions() {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "strict" as const,
+    sameSite: isProduction ? ("none" as const) : ("strict" as const),
     path: "/api/auth", // only sent to auth endpoints
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   };
